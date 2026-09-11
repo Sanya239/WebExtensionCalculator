@@ -1,0 +1,15 @@
+[workspace]
+members = ["backend", "crates/calculator-core"]
+resolver = "2"
+
+[workspace.package]
+name = "lab06"
+version = "0.1.0"
+edition = "2024"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"
