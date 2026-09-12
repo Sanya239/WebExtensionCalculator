@@ -15,6 +15,7 @@ pub(crate) enum UnaryOp {
     Minus,
 }
 
+#[derive(Debug)]
 pub(crate) enum Expression {
     Number {
         value: f64,
@@ -42,15 +43,6 @@ impl Expression {
         }
     }
 }
-
-fn is_zero(expression: &Expression) -> Option<usize> {
-    match expression {
-        Expression::Number { value, pos } if *value == 0.0 => Some(*pos),
-        Expression::Unary { value, .. } => is_zero(value),
-        _ => None,
-    }
-}
-
 struct Parser<'a> {
     tokens: &'a [Token],
     now: usize,
@@ -108,13 +100,6 @@ impl<'a> Parser<'a> {
             };
             self.increment();
             let right = self.parse_factor()?;
-            if let (BinaryOp::Div, Some(zero_pos)) = (operator, is_zero(&right)) {
-                return Err(CalculationError::new(
-                    CalculationErrorKind::Parse,
-                    "Division by zero.",
-                    zero_pos,
-                ));
-            }
             left = Expression::Binary {
                 op: operator,
                 left: Box::new(left),
@@ -216,4 +201,68 @@ pub(crate) fn parse(tokens: &[Token], total_size: usize) -> Result<Expression, C
         ));
     }
     Ok(ast)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_unclosed_parenthesis() {
+        let tokens = [
+            Token {
+                kind: TokenKind::LParen,
+                pos: 0,
+            },
+            Token {
+                kind: TokenKind::Number(2.0),
+                pos: 1,
+            },
+            Token {
+                kind: TokenKind::Plus,
+                pos: 3,
+            },
+            Token {
+                kind: TokenKind::Number(3.0),
+                pos: 5,
+            },
+        ];
+        let error = parse(&tokens, 6).unwrap_err();
+        assert_eq!(error.kind, CalculationErrorKind::Parse);
+        assert_eq!(error.position, 0);
+    }
+
+    #[test]
+    fn test_unexpected_token_after_expression() {
+        let tokens = [
+            Token {
+                kind: TokenKind::Number(2.0),
+                pos: 0,
+            },
+            Token {
+                kind: TokenKind::Number(3.0),
+                pos: 2,
+            },
+        ];
+        let error = parse(&tokens, 3).unwrap_err();
+        assert_eq!(error.kind, CalculationErrorKind::Parse);
+        assert_eq!(error.position, 2);
+    }
+
+    #[test]
+    fn test_unexpected_end_of_expression() {
+        let tokens = [
+            Token {
+                kind: TokenKind::Number(2.0),
+                pos: 0,
+            },
+            Token {
+                kind: TokenKind::Plus,
+                pos: 2,
+            },
+        ];
+        let error = parse(&tokens, 3).unwrap_err();
+        assert_eq!(error.kind, CalculationErrorKind::Parse);
+        assert_eq!(error.position, 3);
+    }
 }

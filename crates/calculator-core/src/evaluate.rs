@@ -36,3 +36,56 @@ pub(crate) fn evaluate(expression: &Expression) -> Result<f64, CalculationError>
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_division_by_zero() {
+        let expr = Expression::Binary {
+            op: BinaryOp::Div,
+            left: Box::new(Expression::Number {
+                value: 10.0,
+                pos: 0,
+            }),
+            right: Box::new(Expression::Number { value: 0.0, pos: 5 }),
+            pos: 3,
+        };
+        let err = evaluate(&expr).unwrap_err();
+        assert_eq!(err.kind, CalculationErrorKind::Evaluation);
+        assert_eq!(err.position, 5);
+    }
+
+    #[test]
+    fn test_unary_minus_evaluation() {
+        let expr = Expression::Unary {
+            op: UnaryOp::Minus,
+            value: Box::new(Expression::Number {
+                value: 42.0,
+                pos: 1,
+            }),
+            pos: 0,
+        };
+        assert!((evaluate(&expr).unwrap() - -42.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn test_subtraction_associativity() {
+        let expr = Expression::Binary {
+            op: BinaryOp::Sub,
+            left: Box::new(Expression::Binary {
+                op: BinaryOp::Sub,
+                left: Box::new(Expression::Number {
+                    value: 10.0,
+                    pos: 0,
+                }),
+                right: Box::new(Expression::Number { value: 2.0, pos: 5 }),
+                pos: 3,
+            }),
+            right: Box::new(Expression::Number { value: 3.0, pos: 9 }),
+            pos: 7,
+        };
+        assert!((evaluate(&expr).unwrap() - 5.0).abs() < f64::EPSILON);
+    }
+}

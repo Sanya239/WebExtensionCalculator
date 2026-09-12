@@ -19,6 +19,6 @@ fn parse_error() {
 fn division_by_zero_error() {
     let error = calculate("2 / 0 + 3").unwrap_err();
 
-    assert_eq!(error.kind, CalculationErrorKind::Parse);
+    assert_eq!(error.kind, CalculationErrorKind::Evaluation);
     assert_eq!(error.position, 4);
 }
