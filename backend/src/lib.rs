@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 #[serde(deny_unknown_fields)]
 pub struct CalculateRequest {
     pub expression: String,
+    pub device_id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -27,10 +28,11 @@ pub enum CalculationErrorType {
     EvaluationError,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct HistoryRequest {
     pub limit: u16,
+    pub device_id: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
