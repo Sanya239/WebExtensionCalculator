@@ -1,3 +1,8 @@
+use axum::{
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -11,9 +16,7 @@ pub struct CalculateRequest {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CalculateResponse {
-    Success {
-        result: f64,
-    },
+    Success { result: f64 },
     Error {
         error_type: CalculationErrorType,
         message: String,
@@ -67,4 +70,45 @@ pub struct ApiErrorResponse {
 pub enum ApiErrorType {
     InvalidRequest,
     InternalError,
+}
+
+#[derive(Debug)]
+pub enum ApiError {
+    BadRequest(String),
+    Internal(String),
+}
+
+impl ApiError {
+    pub fn bad_request(message: impl Into<String>) -> Self {
+        Self::BadRequest(message.into())
+    }
+
+    pub fn internal(message: impl Into<String>) -> Self {
+        Self::Internal(message.into())
+    }
+}
+
+impl IntoResponse for ApiError {
+    fn into_response(self) -> Response {
+        let (status, error_type, message) = match self {
+            ApiError::BadRequest(m) => (
+                StatusCode::BAD_REQUEST,
+                ApiErrorType::InvalidRequest,
+                m,
+            ),
+            ApiError::Internal(m) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                ApiErrorType::InternalError,
+                m,
+            ),
+        };
+        (status, Json(ApiErrorResponse { error_type, message })).into_response()
+    }
+}
+
+impl From<sqlx::Error> for ApiError {
+    fn from(err: sqlx::Error) -> Self {
+        tracing::error!(error = %err, "database error");
+        ApiError::internal(format!("database error: {err}"))
+    }
 }
