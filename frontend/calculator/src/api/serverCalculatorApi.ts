@@ -4,8 +4,9 @@ import type {
   CalculatorApi,
   HistoryEntry,
 } from './types.ts'
+import { getOrCreateDeviceId } from '../storage/extensionStorage.ts'
 
-const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:8080').replace(/\/$/, '')
+const API_URL = (import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:3000').replace(/\/$/, '')
 
 async function request<T>(path: string, options: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, {
@@ -34,18 +35,25 @@ async function request<T>(path: string, options: RequestInit): Promise<T> {
 }
 
 export const serverCalculatorApi: CalculatorApi = {
-  postCalcExpression(expression: string): Promise<CalculateResponse> {
-    return request('/calc_expression', {
+  async postCalcExpression(expression: string): Promise<CalculateResponse> {
+    const deviceId = await getOrCreateDeviceId()
+
+    return request('/api/calculate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ expression }),
+      body: JSON.stringify({ expression, device_id: deviceId }),
     })
   },
 
-  getHistory(limit = 100): Promise<HistoryEntry[]> {
-    const params = new URLSearchParams({ limit: String(limit) })
-    return request(`/get_history?${params}`, { method: 'GET' })
+  async getHistory(limit = 100): Promise<HistoryEntry[]> {
+    const deviceId = await getOrCreateDeviceId()
+    const params = new URLSearchParams({
+      limit: String(limit),
+      device_id: deviceId,
+    })
+
+    return request(`/api/history?${params}`, { method: 'GET' })
   },
 }

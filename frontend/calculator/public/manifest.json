@@ -1,7 +1,7 @@
 {
   "name": "WebCalc",
   "description": "Web Calculator with powerful Rust backend",
-  "version": "1.4",
+  "version": "1.5",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
@@ -18,6 +18,11 @@
     "contextMenus",
     "activeTab",
     "scripting"
+  ],
+
+  "host_permissions": [
+    "http://localhost:3000/*",
+    "http://127.0.0.1:3000/*"
   ],
 
   "background": {

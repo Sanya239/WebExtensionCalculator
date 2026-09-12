@@ -8,6 +8,8 @@
     "dev:mock": "VITE_API_MODE=mock vite",
     "dev:server": "VITE_API_MODE=server vite",
     "build": "INLINE_RUNTIME_CHUNK=false tsc -b && vite build",
+    "build:mock": "VITE_API_MODE=mock npm run build",
+    "build:server": "VITE_API_MODE=server npm run build",
     "lint": "oxlint",
     "preview": "vite preview"
   },

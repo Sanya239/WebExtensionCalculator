@@ -5,6 +5,11 @@
 /target/
 /Cargo.lock
 
+# Local backend configuration
+/.env
+/.env.*
+!/.env.example
+
 # Unused assets created by the Vite starter
 /frontend/calculator/public/favicon.svg
 /frontend/calculator/public/icons.svg

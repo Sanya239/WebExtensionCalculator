@@ -1,7 +1,12 @@
 export const INPUT_STORAGE_KEY = 'Calculator-extension-input'
 export const RESULT_STORAGE_KEY = 'Calculator-extension-result'
 export const CALCULATE_ON_OPEN_STORAGE_KEY = 'Calculator-extension-calculate-on-open'
+export const DEVICE_ID_STORAGE_KEY = 'Calculator-extension-device-id'
 export const MENU_ITEM_ID = 'calculate-with-extension'
+
+const DEVICE_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
+
+let deviceIdPromise: Promise<string> | undefined
 
 export type CalculatorFormState = {
   expression: string
@@ -37,6 +42,31 @@ async function writeValues(values: Record<string, string | boolean>) {
   for (const [key, value] of Object.entries(values)) {
     localStorage.setItem(key, String(value))
   }
+}
+
+function createDeviceId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  return `calculator-${Date.now()}-${Math.random().toString(36).slice(2)}`
+}
+
+export function getOrCreateDeviceId(): Promise<string> {
+  deviceIdPromise ??= (async () => {
+    const values = await readValues([DEVICE_ID_STORAGE_KEY])
+    const storedDeviceId = values[DEVICE_ID_STORAGE_KEY]
+
+    if (typeof storedDeviceId === 'string' && DEVICE_ID_PATTERN.test(storedDeviceId)) {
+      return storedDeviceId
+    }
+
+    const deviceId = createDeviceId()
+    await writeValues({ [DEVICE_ID_STORAGE_KEY]: deviceId })
+    return deviceId
+  })()
+
+  return deviceIdPromise
 }
 
 export async function readFormState(): Promise<CalculatorFormState> {
