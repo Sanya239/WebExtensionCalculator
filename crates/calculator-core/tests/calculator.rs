@@ -3,8 +3,8 @@ use calculator_core::error::CalculationErrorKind;
 
 #[test]
 fn correct_precedence() {
-    assert_eq!(calculate("2 + 3 * 4").unwrap(), 14.0);
-    assert_eq!(calculate("(2 + 3) * 4").unwrap(), 20.0);
+    assert!((calculate("2 + 3 * 4").unwrap() - 14.0).abs() < f64::EPSILON);
+    assert!((calculate("(2 + 3) * 4").unwrap() - 20.0).abs() < f64::EPSILON);
 }
 
 #[test]

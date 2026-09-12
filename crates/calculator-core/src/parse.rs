@@ -1,7 +1,7 @@
 use crate::error::{CalculationError, CalculationErrorKind};
 use crate::tokenize::{Token, TokenKind};
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum BinaryOp {
     Add,
     Sub,
@@ -9,6 +9,7 @@ pub(crate) enum BinaryOp {
     Div,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum UnaryOp {
     Plus,
     Minus,
@@ -35,9 +36,9 @@ pub(crate) enum Expression {
 impl Expression {
     pub(crate) fn pos(&self) -> usize {
         match self {
-            Expression::Number { pos, .. } => *pos,
-            Expression::Unary { pos, .. } => *pos,
-            Expression::Binary { pos, .. } => *pos,
+            Expression::Number { pos, .. }
+            | Expression::Unary { pos, .. }
+            | Expression::Binary { pos, .. } => *pos,
         }
     }
 }
@@ -69,8 +70,8 @@ impl<'a> Parser<'a> {
         self.tokens.get(self.now).copied()
     }
 
-    fn increment(&mut self) -> Option<&Token> {
-        let token = self.tokens.get(self.now);
+    fn increment(&mut self) -> Option<Token> {
+        let token = self.tokens.get(self.now).copied();
         if token.is_some() {
             self.now += 1;
         }
@@ -107,14 +108,12 @@ impl<'a> Parser<'a> {
             };
             self.increment();
             let right = self.parse_factor()?;
-            if operator == BinaryOp::Div {
-                if let Some(zero_pos) = is_zero(&right) {
-                    return Err(CalculationError::new(
-                        CalculationErrorKind::Parse,
-                        "Division by zero.",
-                        zero_pos,
-                    ));
-                }
+            if let (BinaryOp::Div, Some(zero_pos)) = (operator, is_zero(&right)) {
+                return Err(CalculationError::new(
+                    CalculationErrorKind::Parse,
+                    "Division by zero.",
+                    zero_pos,
+                ));
             }
             left = Expression::Binary {
                 op: operator,
@@ -127,15 +126,12 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_factor(&mut self) -> Result<Expression, CalculationError> {
-        let token = match self.look() {
-            Some(token) => token.clone(),
-            None => {
-                return Err(CalculationError::new(
-                    CalculationErrorKind::Parse,
-                    "Unexpected end of expression.",
-                    self.total_size,
-                ));
-            }
+        let Some(token) = self.look() else {
+            return Err(CalculationError::new(
+                CalculationErrorKind::Parse,
+                "Unexpected end of expression.",
+                self.total_size,
+            ));
         };
         match token.kind {
             TokenKind::Plus => {
@@ -161,15 +157,12 @@ impl<'a> Parser<'a> {
     }
 
     fn parse_number(&mut self) -> Result<Expression, CalculationError> {
-        let token = match self.look() {
-            Some(token) => token,
-            None => {
-                return Err(CalculationError::new(
-                    CalculationErrorKind::Parse,
-                    "Unexpected end of expression.",
-                    self.total_size,
-                ));
-            }
+        let Some(token) = self.look() else {
+            return Err(CalculationError::new(
+                CalculationErrorKind::Parse,
+                "Unexpected end of expression.",
+                self.total_size,
+            ));
         };
         match token.kind {
             TokenKind::Number(value) => {
@@ -220,8 +213,7 @@ pub(crate) fn parse(tokens: &[Token], total_size: usize) -> Result<Expression, C
             CalculationErrorKind::Parse,
             "Unexpected token after expression.",
             token.pos,
-        )
-        .into());
+        ));
     }
     Ok(ast)
 }

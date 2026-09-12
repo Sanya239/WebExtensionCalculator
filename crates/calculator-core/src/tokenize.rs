@@ -17,6 +17,53 @@ pub(crate) struct Token {
     pub(crate) pos: usize,
 }
 
+fn tokenize_number(
+    chars: &[(usize, char)],
+    start_idx: &mut usize,
+) -> Result<Token, CalculationError> {
+    let start_pos = chars[*start_idx].0;
+    let mut number = String::new();
+    let mut has_dot = false;
+    while *start_idx < chars.len() {
+        let (_, char) = chars[*start_idx];
+        if char.is_ascii_digit() {
+            number.push(char);
+            *start_idx += 1;
+        } else if char == '.' {
+            if has_dot {
+                return Err(CalculationError::new(
+                    CalculationErrorKind::Parse,
+                    "Invalid float literal: multiple decimal points found.",
+                    chars[*start_idx].0,
+                ));
+            }
+            has_dot = true;
+            number.push(chars[*start_idx].1);
+            *start_idx += 1;
+        } else {
+            break;
+        }
+    }
+    if number == "." {
+        return Err(CalculationError::new(
+            CalculationErrorKind::Parse,
+            "Expected digits before or after the decimal point.",
+            start_pos,
+        ));
+    }
+    let value = number.parse::<f64>().map_err(|_| {
+        CalculationError::new(
+            CalculationErrorKind::Parse,
+            format!("Failed to parse number '{number}'."),
+            start_pos,
+        )
+    })?;
+    Ok(Token {
+        kind: TokenKind::Number(value),
+        pos: start_pos,
+    })
+}
+
 pub(crate) fn tokenize(input: &str) -> Result<Vec<Token>, CalculationError> {
     let mut tokens = Vec::new();
     let chars: Vec<(usize, char)> = input.char_indices().collect();
@@ -70,52 +117,12 @@ pub(crate) fn tokenize(input: &str) -> Result<Vec<Token>, CalculationError> {
                 i += 1;
             }
             '0'..='9' | '.' => {
-                let start_pos = pos;
-                let mut number = String::new();
-                let mut has_dot = false;
-                while i < chars.len() {
-                    let (_, char) = chars[i];
-                    if char.is_ascii_digit() {
-                        number.push(char);
-                        i += 1;
-                    } else if char == '.' {
-                        if has_dot {
-                            return Err(CalculationError::new(
-                                CalculationErrorKind::Parse,
-                                "Invalid float literal: multiple decimal points found.",
-                                chars[i].0,
-                            ));
-                        }
-                        has_dot = true;
-                        number.push(chars[i].1);
-                        i += 1;
-                    } else {
-                        break;
-                    }
-                }
-                if number == "." {
-                    return Err(CalculationError::new(
-                        CalculationErrorKind::Parse,
-                        "Expected digits before or after the decimal point.",
-                        start_pos,
-                    ));
-                }
-                let value = number.parse::<f64>().map_err(|_| {
-                    CalculationError::new(
-                        CalculationErrorKind::Parse,
-                        format!("Failed to parse number '{}'.", number),
-                        start_pos,
-                    )
-                })?;
-                tokens.push(Token {
-                    kind: TokenKind::Number(value),
-                    pos: start_pos,
-                });
+                tokens.push(tokenize_number(&chars, &mut i)?);
             }
             _ => {
                 return Err(CalculationError::new(
                     CalculationErrorKind::Parse,
-                    format!("Unexpected character: '{}' found in expression.", char),
+                    format!("Unexpected character: '{char}' found in expression."),
                     pos,
                 ));
             }
@@ -139,7 +146,7 @@ mod tests {
 
     #[test]
     fn test_valid_tokens_and_positions() {
-        let tokens = tokenize("2 + 3.1415").unwrap();
+        let tokens = tokenize("2 + 2.75").unwrap();
         assert_eq!(tokens.len(), 3);
         assert_eq!(
             tokens[0],
@@ -158,7 +165,7 @@ mod tests {
         assert_eq!(
             tokens[2],
             Token {
-                kind: TokenKind::Number(3.1415),
+                kind: TokenKind::Number(2.75),
                 pos: 4
             }
         );
