@@ -2,8 +2,8 @@ mod handlers;
 mod repo;
 
 use axum::{
-    routing::{get, post},
     Router,
+    routing::{get, post},
 };
 use sqlx::PgPool;
 use tower_http::{cors::CorsLayer, trace::TraceLayer};
@@ -24,8 +24,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .init();
 
-    let database_url =
-        std::env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env");
     let pool = PgPool::connect(&database_url).await?;
 
     sqlx::migrate!("./migrations").run(&pool).await?;

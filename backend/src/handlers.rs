@@ -1,14 +1,14 @@
 use axum::{
-    extract::{Query, State},
     Json,
+    extract::{Query, State},
 };
 use calculator_backend::{
-    ApiError, CalculateRequest, CalculateResponse, CalculationErrorType,
-    HistoryEntryResponse, HistoryRequest, HistoryResponse,
+    ApiError, CalculateRequest, CalculateResponse, CalculationErrorType, HistoryEntryResponse,
+    HistoryRequest, HistoryResponse,
 };
 use calculator_core::CalculationErrorKind;
 
-use crate::{repo, AppState};
+use crate::{AppState, repo};
 
 const DEVICE_ID_MAX_LEN: usize = 128;
 

@@ -1,7 +1,7 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
-    Json,
 };
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -16,7 +16,9 @@ pub struct CalculateRequest {
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum CalculateResponse {
-    Success { result: f64 },
+    Success {
+        result: f64,
+    },
     Error {
         error_type: CalculationErrorType,
         message: String,
@@ -91,18 +93,21 @@ impl ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_type, message) = match self {
-            ApiError::BadRequest(m) => (
-                StatusCode::BAD_REQUEST,
-                ApiErrorType::InvalidRequest,
-                m,
-            ),
+            ApiError::BadRequest(m) => (StatusCode::BAD_REQUEST, ApiErrorType::InvalidRequest, m),
             ApiError::Internal(m) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 ApiErrorType::InternalError,
                 m,
             ),
         };
-        (status, Json(ApiErrorResponse { error_type, message })).into_response()
+        (
+            status,
+            Json(ApiErrorResponse {
+                error_type,
+                message,
+            }),
+        )
+            .into_response()
     }
 }
 

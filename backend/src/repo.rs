@@ -18,14 +18,12 @@ pub async fn insert_success(
     expression: &str,
     result: f64,
 ) -> Result<(), sqlx::Error> {
-    sqlx::query(
-        "INSERT INTO calculations (device_id, expression, result) VALUES ($1, $2, $3)",
-    )
-    .bind(device_id)
-    .bind(expression)
-    .bind(result)
-    .execute(pool)
-    .await?;
+    sqlx::query("INSERT INTO calculations (device_id, expression, result) VALUES ($1, $2, $3)")
+        .bind(device_id)
+        .bind(expression)
+        .bind(result)
+        .execute(pool)
+        .await?;
     Ok(())
 }
 
