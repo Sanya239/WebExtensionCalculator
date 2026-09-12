@@ -1,0 +1,25 @@
+{
+  "name": "WebCalc",
+  "description": "Web Calculator with powerful Rust backend",
+  "version": "1.1",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html",
+    "default_title": "Calculator"
+  },
+  "icons": {
+    "16": "img.png",
+    "48": "img.png",
+    "128": "img.png"
+  },
+
+  "permissions": [
+    "storage",
+    "contextMenus"
+  ],
+
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

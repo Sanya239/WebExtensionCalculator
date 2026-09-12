@@ -4,6 +4,7 @@ import {
   type CalculateResponse,
   type HistoryEntry,
 } from './api/calculatorApi.ts'
+import { readFormState, writeFormState } from './storage/extensionStorage.ts'
 
 const HISTORY_LIMIT = 100
 
@@ -40,6 +41,7 @@ function getResponseText(response: CalculateResponse) {
 function App() {
   const [expression, setExpression] = useState('')
   const [result, setResult] = useState('')
+  const [isStorageReady, setIsStorageReady] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
   const [isCalculating, setIsCalculating] = useState(false)
   const historyRef = useRef<HTMLDivElement>(null)
@@ -58,12 +60,38 @@ function App() {
   }, [])
 
   useEffect(() => {
+    let isActive = true
+
+    readFormState()
+      .then((state) => {
+        if (!isActive) return
+
+        setExpression(state.expression)
+        setResult(state.result)
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (isActive) setIsStorageReady(true)
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [])
+
+  useEffect(() => {
     const historyElement = historyRef.current
 
     if (historyElement) {
       historyElement.scrollTop = historyElement.scrollHeight
     }
   }, [history])
+
+  useEffect(() => {
+    if (!isStorageReady) return
+
+    writeFormState({ expression, result }).catch(() => undefined)
+  }, [expression, result, isStorageReady])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
