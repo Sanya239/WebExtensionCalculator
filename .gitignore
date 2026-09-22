@@ -10,6 +10,10 @@
 /.env.*
 !/.env.example
 
+# Frontend dependencies and build output
+/frontend/calculator/node_modules/
+/frontend/calculator/dist/
+
 # Unused assets created by the Vite starter
 /frontend/calculator/public/favicon.svg
 /frontend/calculator/public/icons.svg

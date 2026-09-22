@@ -1,7 +1,7 @@
 {
   "name": "WebCalc",
   "description": "Web Calculator with powerful Rust backend",
-  "version": "1.5",
+  "version": "1.7",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
