@@ -1,5 +1,4 @@
-use calculator_core::calculate;
-use calculator_core::error::CalculationErrorKind;
+use calculator_core::{CalculationErrorKind, calculate};
 
 #[test]
 fn correct_precedence() {
@@ -10,7 +9,6 @@ fn correct_precedence() {
 #[test]
 fn parse_error() {
     let error = calculate("2 + * 3").unwrap_err();
-
     assert_eq!(error.kind, CalculationErrorKind::Parse);
     assert_eq!(error.position, 4);
 }

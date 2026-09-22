@@ -43,6 +43,7 @@ impl Expression {
         }
     }
 }
+
 struct Parser<'a> {
     tokens: &'a [Token],
     now: usize,

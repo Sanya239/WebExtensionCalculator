@@ -1,0 +1,23 @@
+# IDE files
+.idea/
+
+# Rust build output and library-workspace lockfile
+/target/
+/Cargo.lock
+
+# Local backend configuration
+/.env
+/.env.*
+!/.env.example
+
+# Frontend dependencies and build output
+/frontend/calculator/node_modules/
+/frontend/calculator/dist/
+
+# Unused assets created by the Vite starter
+/frontend/calculator/public/favicon.svg
+/frontend/calculator/public/icons.svg
+/frontend/calculator/src/App.css
+/frontend/calculator/src/assets/hero.png
+/frontend/calculator/src/assets/react.svg
+/frontend/calculator/src/assets/vite.svg

@@ -1,9 +1,9 @@
-use crate::error::CalculationError;
-
 pub mod error;
 mod evaluate;
 mod parse;
 mod tokenize;
+
+pub use error::{CalculationError, CalculationErrorKind};
 
 /// # Errors
 ///
