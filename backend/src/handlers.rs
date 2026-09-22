@@ -6,11 +6,32 @@ use calculator_backend::{
     ApiError, CalculateRequest, CalculateResponse, CalculationErrorType, HistoryEntryResponse,
     HistoryRequest, HistoryResponse,
 };
-use calculator_core::CalculationErrorKind;
+use calculator_core::{CalculationError, CalculationErrorKind};
 
 use crate::{AppState, repo};
 
 const DEVICE_ID_MAX_LEN: usize = 128;
+
+trait IntoCalculationError {
+    fn into_calculation_error(self) -> CalculationError;
+}
+
+impl IntoCalculationError for CalculationError {
+    fn into_calculation_error(self) -> CalculationError {
+        self
+    }
+}
+
+impl IntoCalculationError for anyhow::Error {
+    fn into_calculation_error(self) -> CalculationError {
+        match self.downcast::<CalculationError>() {
+            Ok(error) => error,
+            Err(error) => {
+                CalculationError::new(CalculationErrorKind::Evaluation, error.to_string(), 0)
+            }
+        }
+    }
+}
 
 fn validate_device_id(device_id: &str) -> Result<(), ApiError> {
     if device_id.is_empty() {
@@ -44,7 +65,8 @@ pub async fn calculate(
             repo::insert_success(&state.pool, &req.device_id, &req.expression, result).await?;
             Ok(Json(CalculateResponse::Success { result }))
         }
-        Err(calc) => {
+        Err(error) => {
+            let calc = error.into_calculation_error();
             let error_type = match calc.kind {
                 CalculationErrorKind::Parse => CalculationErrorType::ParseError,
                 CalculationErrorKind::Evaluation => CalculationErrorType::EvaluationError,
