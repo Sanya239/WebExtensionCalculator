@@ -2,12 +2,17 @@
 
 Minimal React calculator UI with a keyboard-driven expression input and a scrollable calculation history.
 
+## Requirements
+
+- Node.js
+- npm
+
 ## Development
 
 Install dependencies:
 
 ```bash
-npm install
+npm ci
 ```
 
 Run with the local mock API:
