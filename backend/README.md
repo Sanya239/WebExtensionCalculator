@@ -3,42 +3,18 @@
 ## Требования
 
 - Rust stable (1.85+)
-- Docker (или локальный PostgreSQL)
+- Docker Compose
 
 ## Запуск
 
-1. Из корня репозитория скопируйте пример окружения:
+Из корня репозитория запустите PostgreSQL и бекенд:
 
-   ```bash
-   cp backend/.env.example .env
-   ```
+```bash
+docker compose up --build
+```
 
-2. Поднимите PostgreSQL:
-
-   ```bash
-   docker build -f backend/Dockerfile -t calculator-postgres-image backend
-
-   docker run --name calculator-postgres \
-     --restart unless-stopped \
-     -p 127.0.0.1:5432:5432 \
-     -v calculator-postgres-data:/var/lib/postgresql/data \
-     -d calculator-postgres-image
-   ```
-
-   Если контейнер уже создан, выполните `docker start calculator-postgres`.
-
-3. Запустите сервер:
-
-   ```bash
-   cargo run -p calculator-backend
-   ```
-
-4. Проверьте:
-
-   ```bash
-   curl http://127.0.0.1:3000/health
-   # => ok
-   ```
+Бекенд будет доступен на `http://127.0.0.1:3000`. Переменные окружения для
+контейнеров задаются в `docker-compose.yml`
 
 ## Ручки
 

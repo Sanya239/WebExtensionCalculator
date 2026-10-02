@@ -12,31 +12,17 @@
 - вычисление выделенного на странице текста через контекстное меню или `Ctrl+Shift+Y`;
 - mock-режим для разработки без бекенда.
 
+## Требования
+
+- Docker Compose
+- Node.js и npm
+
 ## Запуск
 
-Технологии Rust, Node.js, npm и Docker.
-
-Сборка и запуск локальной базы данных PostgreSQL из корня репозитория:
-
+Из корня репозитория запустите PostgreSQL и бекенд:
 ```bash
-docker build -f backend/Dockerfile -t calculator-postgres-image backend
-docker run --name calculator-postgres \
-  --restart unless-stopped \
-  -p 127.0.0.1:5432:5432 \
-  -v calculator-postgres-data:/var/lib/postgresql/data \
-  -d calculator-postgres-image
+docker compose up --build
 ```
-
-Если контейнер уже создан: `docker start calculator-postgres`.
-
-Запуск бекенда:
-
-```bash
-cp backend/.env.example .env
-cargo run -p calculator-backend
-```
-
-Сервер будет доступен на `http://127.0.0.1:3000`.
 
 Запуск веб-интерфейса:
 ```bash
