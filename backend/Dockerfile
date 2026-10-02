@@ -1,21 +1,21 @@
-FROM rust:1.80-slim AS builder
+FROM rust:slim-bookworm AS builder
 
 WORKDIR /usr/src/app
 
 COPY . .
 
-RUN cargo build --release
+RUN cargo build --locked --release --package calculator-backend
 
 FROM debian:bookworm-slim
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y libpq-dev ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY --from=builder /usr/src/app/target/release/backend_app_name /app/backend
+COPY --from=builder /usr/src/app/target/release/calculator-backend /app/calculator-backend
 
-EXPOSE 8080
+EXPOSE 3000
 
-CMD ["./backend"]
+CMD ["/app/calculator-backend"]
