@@ -40,14 +40,14 @@ pub async fn insert_error(
         CalculationErrorType::EvaluationError => "evaluation_error",
     };
     sqlx::query(
-        r#"INSERT INTO calculations (device_id, expression, error_type, message, position)
-           VALUES ($1, $2, $3, $4, $5)"#,
+        r"INSERT INTO calculations (device_id, expression, error_type, message, position)
+           VALUES ($1, $2, $3, $4, $5)",
     )
     .bind(device_id)
     .bind(expression)
     .bind(error_type_str)
     .bind(message)
-    .bind(position as i32)
+    .bind(i32::try_from(position).unwrap_or(i32::MAX))
     .execute(pool)
     .await?;
     Ok(())
@@ -59,13 +59,13 @@ pub async fn fetch_history(
     limit: i64,
 ) -> Result<Vec<HistoryRow>, sqlx::Error> {
     sqlx::query_as::<_, HistoryRow>(
-        r#"
+        r"
         SELECT expression, result, error_type, message, position, timestamp
         FROM calculations
         WHERE device_id = $1
         ORDER BY timestamp DESC, id DESC
         LIMIT $2
-        "#,
+        ",
     )
     .bind(device_id)
     .bind(limit)

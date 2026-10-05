@@ -85,20 +85,20 @@ pub async fn calculate(
             Ok(Json(CalculateResponse::Error {
                 error_type,
                 message: calc.message,
-                position: calc.position as u32,
+                position: u32::try_from(calc.position).unwrap_or(u32::MAX),
             }))
         }
     }
 }
 
-/// GET /api/history?limit=10&device_id=...
+/// `GET /api/history?limit=10&device_id=...`
 pub async fn history(
     State(state): State<AppState>,
     Query(req): Query<HistoryRequest>,
 ) -> Result<Json<HistoryResponse>, ApiError> {
     validate_device_id(&req.device_id)?;
 
-    let limit = req.limit.min(100) as i64;
+    let limit = i64::from(req.limit.min(100));
 
     let rows = repo::fetch_history(&state.pool, &req.device_id, limit).await?;
     let entries = rows.into_iter().map(into_history_entry).collect();
@@ -121,7 +121,7 @@ fn into_history_entry(row: repo::HistoryRow) -> HistoryEntryResponse {
             expression: row.expression,
             error_type,
             message: row.message.unwrap_or_default(),
-            position: row.position.unwrap_or(0) as u32,
+            position: u32::try_from(row.position.unwrap_or(0)).unwrap_or_default(),
             timestamp: row.timestamp,
         }
     }
